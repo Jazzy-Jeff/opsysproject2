@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <string>
+
 #include <list>
 
 #include "functions.h"
@@ -13,20 +14,23 @@
 
 using namespace std;
 
-void printMemory(vector<Partition*> memory) {
+void printMemory(const list<Partition> &memory) {
   int count = 0;
   string id;
-  for(int i = 0; i < LINE; i++) { cout << "=" << endl;}
-  for(int i = 0; i < SIZE; i++, count--) {
-    if(i % LINE == 0) { cout << endl; }
-    if( count == 0 )
-    {
-      id = (*memory[i]).getId();
-      count =(*memory[i]).getSize();
+  for(int i = 0; i < LINE; i++) { cout << "=";}
+  cout << endl;
+  for(list<Partition>::const_iterator itr = memory.begin(); itr != memory.end(); itr++) {
+    for(int i = 0; i < (*itr).getSize(); i++) {
+      cout << (*itr).getId();
+      count++;
+      if(count == LINE) {
+	cout << endl;
+	count = 0;
+      }
     }
-    cout << id;
   }
-  for(int i = 0; i < LINE; i++) { cout << "=" << endl;}
+  for(int i = 0; i < LINE; i++) { cout << "=";}
+  cout << endl;
 }
 
 void parseInput(string filename, vector<Process> &processes) {
@@ -59,11 +63,12 @@ void parseInput(string filename, vector<Process> &processes) {
   }
 }
 
-int main (int argc, char* argv[]){
+int main (int argc, char* argv[]) {
   string filename = argv[1];
   vector<Process> processes;
   
   parseInput(filename, processes);
+
   for(unsigned int i = 0; i < processes.size(); i++) {
     cout << "id = " << processes[i].getId() <<endl;
     cout << "size = " << processes[i].getSize() <<endl;
@@ -71,7 +76,8 @@ int main (int argc, char* argv[]){
     cout << "runTime = " << processes[i].getRunTime() <<endl;
     cout << endl;
   }
-  //runContiguous(processes);
+  runContiguous(processes, SIZE);
   
   return EXIT_SUCCESS;
 }
+

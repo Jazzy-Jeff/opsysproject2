@@ -21,8 +21,16 @@ int Partition::getSize() const {
   return size;
 }
 
+void Partition::updateSize(int size1) {
+  size = size1;
+}
+
 void Partition::emptyPartition() {
   process = NULL;
+}
+
+void Partition::assignPartition(Process* proc) {
+  process = proc;
 }
 
 bool Partition::isEmpty() {

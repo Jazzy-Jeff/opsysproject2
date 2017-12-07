@@ -16,7 +16,9 @@ class Partition{
   bool isEmpty();
   
   //Modifiers
+  void updateSize(int size1);
   void emptyPartition();
+  void assignPartition(Process* proc);
   
  private:
   int size;
