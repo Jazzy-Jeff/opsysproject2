@@ -7,7 +7,7 @@ void printMemory(const list<Partition> &memory);
 void nextFit(std::vector<Process*> processes);
 void firstFit(std::vector<Process*> processes);
 void bestFit(std::vector<Process*> processes);
-void defragmentation(list<Partition> &memory, int &freeMem);
+int defragmentation(list<Partition> &memory, int &freeMem, string &movedProcesses);
 int runContiguous(std::vector<Process> processes, int memSize);
 
 //Non-Contiguous memory function definitions

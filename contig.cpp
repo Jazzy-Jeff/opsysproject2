@@ -5,6 +5,8 @@
 
 #include "functions.h"
 
+#define T_MEMMOVE 1
+
 using namespace std;
 
 void addPartition(list<Partition> &memory, const list<Partition>::iterator &loc, Process &proc ) {
@@ -19,6 +21,25 @@ void addPartition(list<Partition> &memory, const list<Partition>::iterator &loc,
   }
 }
 
+void mergePartitions(list<Partition> &memory, list<Partition>::iterator loc) {
+  int size = 0;
+  list<Partition>::iterator left = loc;
+  left--;
+  list<Partition>::iterator right = loc;
+  right++;
+  
+  if(loc != memory.begin() && (*left).isEmpty()) {
+    size = (*left).getSize();
+    (*loc).updateSize(size + (*loc).getSize());
+    memory.erase(left);
+  }
+  if(right != memory.end() && (*right).isEmpty()) {
+    size = (*right).getSize();
+    (*loc).updateSize(size + (*loc).getSize());
+    memory.erase(right);
+  }
+}
+
 void nextFit(vector<Process> processes, int memSize) {
   
 }
@@ -29,12 +50,12 @@ void firstFit(vector<Process> processes, int memSize) {
   int time = 0;
   cout << "time " << time << "ms: Simulator started (Contiguous -- First-Fit)" << endl;
   int freeMem = memSize;
-  unsigned int skipped = 0;
+  int defragTime = 0;
   unsigned int finished = 0;
   //while there are processes left to be processed
-  while(finished + skipped < processes.size()) { // remove processes from vector or keep variable count of finished processes
+  while(finished < processes.size()) { // remove processes from vector or keep variable count of finished processes
     for(unsigned int i = 0; i < processes.size(); i++) {
-      if(processes[i].getArrivalTime() == time) {
+      if(processes[i].getArrivalTime() + defragTime == time) {
 	cout << "time " << time << "ms: Process " << processes[i].getId() << " arrived (requires " << processes[i].getSize() << " frames)" << endl;
 	//add process to memory if possible
 	//  print memory if added
@@ -49,16 +70,26 @@ void firstFit(vector<Process> processes, int memSize) {
 	      printMemory(memory);
 	      freeMem -= processes[i].getSize();
 	      partitionAdded = true;
+	      break;
 	    }
 	  }
 	  if(!partitionAdded) {
-	    defragmentation(memory, freeMem);
-	    addPartition(memory, memory.end(), processes[i]);
+	    string movedProcesses = "";
+	    cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- starting defragmentation" << endl;
+	    int framesMoved = memSize - defragmentation(memory, freeMem, movedProcesses);
+	    defragTime += framesMoved*T_MEMMOVE;
+	    time += defragTime;
+	    cout << "time " << time << "ms: Defragmentation complete (moved " << framesMoved << " frames:" << movedProcesses << ")" << endl;
+	    cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
+	    addPartition(memory, --memory.end(), processes[i]);
+	    printMemory(memory);
 	  }
 	}
 	else {
 	  //skip process
-	  skipped++;
+	  if(processes[i].processComplete()) {
+	    finished++;
+	  }
 	  cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- skipped!" << endl;
 	  continue;
 	}
@@ -70,39 +101,49 @@ void firstFit(vector<Process> processes, int memSize) {
     //    set partition that process uses as free (update freeMem variable, etc.)
     //    remove process from processes list or add to count of finished processes
     for(list<Partition>::iterator itr = memory.begin(); itr != memory.end(); itr++) {
-      if((*itr).getExpirationTime() == time) {
+      if((*itr).getExpirationTime() + defragTime == time) {
 	if((*(*itr).getProcess()).processComplete()) {
 	  finished++;
 	}
 	cout << "time " << time << "ms: Process " << (*itr).getId() << " removed:" << endl;
 	(*itr).emptyPartition();
 	freeMem += (*itr).getSize();
-	printMemory(memory);
+	mergePartitions(memory, itr);
+	//if(finished < processes.size()) {
+	  printMemory(memory);
+	  //}
       }
     }
     time++;
   }
+  cout << "time " << time-1 << "ms: Simulator ended (Contiguous -- First-Fit)" << endl;
 }
 
 void bestFit(vector<Process> processes, int memSize) {
 
 }
 
-//loop over memory and check if there is space
-//could also just keep running total of memory in each function, could be easier
-bool isEnoughMemory() {
-  return false;
-}
-
-//deframent memory
-void defragmentation(list<Partition> &memory, int &freeMem) {
-  for(list<Partition>::iterator itr = memory.begin(); itr != memory.end(); itr++) {
+//defragment memory, returns number of frames moved
+int defragmentation(list<Partition> &memory, int &freeMem, string &movedProcesses) {
+  int open = 0;
+  list<Partition>::iterator itr = memory.begin();
+  bool processMoved = false;
+  while(itr != memory.end()) {
     if((*itr).isEmpty()) {
-      freeMem += (*itr).getSize();
-      memory.erase(itr);
+      processMoved = true;
+      open += (*itr).getSize();
+      itr = memory.erase(itr);
+    }
+    else {
+      if(processMoved) {
+	movedProcesses += " "+ (*itr).getId();
+      }
+      ++itr;
     }
   }
+  freeMem = open;
   memory.push_back(Partition(NULL, freeMem));
+  return open;
 }
 
 int runContiguous(vector<Process> processes, int memSize) {
