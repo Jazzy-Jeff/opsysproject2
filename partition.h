@@ -11,6 +11,7 @@ class Partition{
   //Accessors
   int getSize() const;
   string getId() const;
+  Process* getProcess() const;
   int getExpirationTime() const;
   
   bool isEmpty();
