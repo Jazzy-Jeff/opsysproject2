@@ -11,12 +11,15 @@ class Partition{
   //Accessors
   int getSize() const;
   string getId() const;
+  Process* getProcess() const;
   int getExpirationTime() const;
   
   bool isEmpty();
   
   //Modifiers
+  void updateSize(int size1);
   void emptyPartition();
+  void assignPartition(Process* proc);
   
  private:
   int size;
