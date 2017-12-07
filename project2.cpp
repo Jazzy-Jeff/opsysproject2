@@ -76,7 +76,7 @@ int main (int argc, char* argv[]) {
     cout << "runTime = " << processes[i].getRunTime() <<endl;
     cout << endl;
   }
-  runContiguous(processes, SIZE);
+  //runContiguous(processes, SIZE);
   runNonContiguous(processes, SIZE);
   
   return EXIT_SUCCESS;
