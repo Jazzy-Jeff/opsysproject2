@@ -72,6 +72,7 @@ int main (int argc, char* argv[]){
     cout << endl;
   }
   //runContiguous(processes);
+  runNonContiguous(processes, SIZE);
   
   return EXIT_SUCCESS;
 }
