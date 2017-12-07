@@ -9,5 +9,6 @@ void firstFit(std::vector<Process*> processes);
 void bestFit(std::vector<Process*> processes);
 int defragmentation(list<Partition> &memory, int &freeMem, string &movedProcesses);
 int runContiguous(std::vector<Process> processes, int memSize);
+int runNonContiguous(std::vector<Process> processes, int size);
 
 //Non-Contiguous memory function definitions
