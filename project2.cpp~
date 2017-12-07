@@ -1,0 +1,47 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <stdlib.h>
+#include <string>
+
+#include "functions.h"
+
+#define F 3
+#define SIZE 256
+#define LINE 32
+
+using namespace std;
+
+void printMemory(vector<Partition*> memory) {
+  int count = 0;
+  string id;
+  for(int i = 0; i < LINE; i++) { cout << "=" << endl;}
+  for(int i = 0; i < SIZE; i++, count--) {
+    if(i % LINE == 0) { cout << endl; }
+    if( count == 0 )
+    {
+      id = (*memory[i]).getId();
+      count =(*memory[i]).getSize();
+    }
+    cout << id;
+  }
+  for(int i = 0; i < LINE; i++) { cout << "=" << endl;}
+}
+
+void parseInput(string filename, vector<Process*> &processes) {
+  ifstream input(filename.c_str());
+  string line;
+  while(getline(input, line)) {
+    cout << line << endl;
+  }
+}
+
+int main (int argc, char* argv[]){
+  string filename = argv[1];
+  vector<Process*> processes;
+  
+  parseInput(filename, processes);
+  runContiguous(processes);
+  
+  return EXIT_SUCCESS;
+}

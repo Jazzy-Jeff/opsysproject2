@@ -1,0 +1,20 @@
+#include "partition.h"
+
+Partition::Partition() {
+  process = NULL;
+  size = 0;
+}
+
+Partition::Partition(Process* proc, int size1) {
+  process = proc;
+  size = size1;
+}
+
+string Partition::getId() const {
+  //TODO
+  return "A";
+}
+
+int Partition::getSize() const {
+  return size;
+}
