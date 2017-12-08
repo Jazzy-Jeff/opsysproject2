@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <set>
 #include "functions.h"
-
 using namespace std;
 
 void addPartition(list<Partition> &memory, const list<Partition>::iterator &loc, Process &proc, int current_size) {
@@ -24,7 +24,7 @@ void addPartition(list<Partition> &memory, const list<Partition>::iterator &loc,
     list<Partition>::iterator itr = memory.begin();
     while(itr != memory.end()) {
       if((*itr).isEmpty()) {
-        addPartition(memory, itr, proc, current_size-(*loc).getSize());
+        addPartition(memory, itr, proc, current_size-(*itr).getSize());
         break;
       }
       itr++;
@@ -74,18 +74,46 @@ int runNonContiguous(vector<Process> processes, int size) {
     //  if process expires
     //    set partition that process uses as free (update freeMem variable, etc.)
     //    remove process from processes list or add to count of finished processes
+    //set<string> ended;
+    //set<string>::iterator it;
+    list<Partition>::iterator itr2;
     for(list<Partition>::iterator itr = memory.begin(); itr != memory.end(); itr++) {
       if((*itr).getExpirationTime() == time) {
-        if((*(*itr).getProcess()).processComplete()) {
+        cout << "time " << time << "ms: Process " << (*itr).getId() << " removed:" << endl;
+        //printMemory(memory);
+        //ended.insert(it, (*itr).getId());
+        itr2 = itr;
+        //cout << "pre scan" << endl;
+        if (itr2 != memory.end()){itr2++;}
+        while(itr2 != memory.end()){
+          if ((*itr2).getId() == (*itr).getId()){
+            cout << "needed the scan" << endl;
+            (*itr2).emptyPartition();
+            freeMem += (*itr2).getSize();
+            //mergePartitions(memory, itr2);
+            //cout << "scanning..." << endl;
+          }
+          itr2++;
+        }
+        if((*(*itr).getProcess()).processComplete()){
           //finished++;
           done++;
         }
-        cout << "time " << time << "ms: Process " << (*itr).getId() << " removed:" << endl;
         (*itr).emptyPartition();
         freeMem += (*itr).getSize();
+        //mergePartitions(memory, itr);
         printMemory(memory);
       }
+    }/*
+    for (unsigned int i=0; i<processes.size(); i++){
+      if(processes[i].getArrivalTime() + processes[i].getRunTime() == time && processes[i].processComplete()){
+        done++;
+      }
     }
+    for (it=ended.begin(); it!=ended.end(); ++it){
+      cout << "time " << time << "ms: Process " << *it << " removed:" << endl;
+    }*/
+    //cout << "time++, going again" << endl;
     time++;
   }
   return EXIT_SUCCESS;
