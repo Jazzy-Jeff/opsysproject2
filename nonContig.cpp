@@ -10,6 +10,8 @@
 using namespace std;
 
 void addPartition(list<Partition> &memory, const list<Partition>::iterator &loc, Process &proc, int current_size) {
+  //cout << "remaining size to place is " << current_size << endl;
+  //cout << "loc size is " << (*loc).getSize() << endl;
   if((*loc).getSize() == current_size) {
     (*loc).assignPartition(&proc);
   }
@@ -23,8 +25,9 @@ void addPartition(list<Partition> &memory, const list<Partition>::iterator &loc,
     (*loc).assignPartition(&proc);
     list<Partition>::iterator itr = memory.begin();
     while(itr != memory.end()) {
-      if((*itr).isEmpty()) {
-        addPartition(memory, itr, proc, current_size-(*itr).getSize());
+      if((*itr).isEmpty() && (*itr).getSize() > 0) {
+        //cout << "recursing to place! size to pass along next is " << current_size-(*loc).getSize() << endl;
+        addPartition(memory, itr, proc, current_size-(*loc).getSize());
         break;
       }
       itr++;
@@ -87,10 +90,10 @@ int runNonContiguous(vector<Process> processes, int size) {
         if (itr2 != memory.end()){itr2++;}
         while(itr2 != memory.end()){
           if ((*itr2).getId() == (*itr).getId()){
-            cout << "needed the scan" << endl;
+            //cout << "needed the scan" << endl;
             (*itr2).emptyPartition();
             freeMem += (*itr2).getSize();
-            //mergePartitions(memory, itr2);
+            mergePartitions(memory, itr2);
             //cout << "scanning..." << endl;
           }
           itr2++;
@@ -101,20 +104,13 @@ int runNonContiguous(vector<Process> processes, int size) {
         }
         (*itr).emptyPartition();
         freeMem += (*itr).getSize();
-        //mergePartitions(memory, itr);
+        mergePartitions(memory, itr);
         printMemory(memory);
       }
-    }/*
-    for (unsigned int i=0; i<processes.size(); i++){
-      if(processes[i].getArrivalTime() + processes[i].getRunTime() == time && processes[i].processComplete()){
-        done++;
-      }
     }
-    for (it=ended.begin(); it!=ended.end(); ++it){
-      cout << "time " << time << "ms: Process " << *it << " removed:" << endl;
-    }*/
     //cout << "time++, going again" << endl;
     time++;
   }
+  cout << "time " << time-1 << "ms: Simulator ended (Non-contiguous)"<< endl;
   return EXIT_SUCCESS;
 }
