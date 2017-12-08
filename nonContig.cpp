@@ -9,6 +9,29 @@
 #include "functions.h"
 using namespace std;
 
+void printPageTable(list<Partition> &memory){
+  int pageOffset = 0;
+  map<string, vector<int>> pageTable;
+  for(list<Partition>::iterator itr = memory.begin(); itr != memory.end(); itr++){
+    if (!(*itr).isEmpty()){
+      for(int i=pageOffset; i<pageOffset+(*itr).getSize()-1; i++){
+        pageTable[(*itr).getId()].push_back(i);
+      }
+    }
+    pageOffset += (*itr).getSize();
+  }
+  cout << "PAGE TABLE [page,frame]:" << endl;
+  for(map<string, vector<int> >::const_iterator it = pageTable.begin(); it != pageTable.end(); ++it){
+    cout << it->first << ": ";
+    for(unsigned int i=0; i<it->second.size(); i++){
+      cout << "[" << i << "," << it->second[i]+1 << "]";
+      if((i+1)%10 == 0){cout << endl;}
+      else if (i != it->second.size()-1){cout << " ";}
+    }
+    cout << endl;
+  }
+}
+
 void addPartition(list<Partition> &memory, const list<Partition>::iterator &loc, Process &proc, int current_size) {
   //cout << "remaining size to place is " << current_size << endl;
   //cout << "loc size is " << (*loc).getSize() << endl;
@@ -58,6 +81,7 @@ int runNonContiguous(vector<Process> processes, int size) {
               addPartition(memory, itr, processes[i], processes[i].getSize());
               cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
               printMemory(memory);
+              printPageTable(memory);
               freeMem -= processes[i].getSize();
               break;
             }
@@ -106,9 +130,9 @@ int runNonContiguous(vector<Process> processes, int size) {
         freeMem += (*itr).getSize();
         mergePartitions(memory, itr);
         printMemory(memory);
+        printPageTable(memory);
       }
     }
-    //cout << "time++, going again" << endl;
     time++;
   }
   cout << "time " << time-1 << "ms: Simulator ended (Non-contiguous)"<< endl;
