@@ -68,14 +68,14 @@ int main (int argc, char* argv[]) {
   vector<Process> processes;
   
   parseInput(filename, processes);
-
+  /*
   for(unsigned int i = 0; i < processes.size(); i++) {
     cout << "id = " << processes[i].getId() <<endl;
     cout << "size = " << processes[i].getSize() <<endl;
     cout << "arrival = " << processes[i].getArrivalTime() <<endl;
     cout << "runTime = " << processes[i].getRunTime() <<endl;
     cout << endl;
-  }
+  }*/
   //runContiguous(processes, SIZE);
   runNonContiguous(processes, SIZE);
   
