@@ -235,7 +235,7 @@ int defragmentation(list<Partition> &memory, int &freeMem, string &movedProcesse
 int runContiguous(vector<Process> processes, int memSize) {
 
   //nextFit(processes, memSize);
-  //firstFit(processes, memSize);
+  firstFit(processes, memSize);
   bestFit(processes, memSize);
 
   return EXIT_SUCCESS;

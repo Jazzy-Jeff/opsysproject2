@@ -1,3 +1,7 @@
+//Isaac Dugas dugasi
+//Jeff Willoughby willoj
+//Gabe Langlois langlg
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -69,15 +73,17 @@ int main (int argc, char* argv[]) {
   
   parseInput(filename, processes);
 
-  /*for(unsigned int i = 0; i < processes.size(); i++) {
+  /*
+  for(unsigned int i = 0; i < processes.size(); i++) {
     cout << "id = " << processes[i].getId() <<endl;
     cout << "size = " << processes[i].getSize() <<endl;
     cout << "arrival = " << processes[i].getArrivalTime() <<endl;
     cout << "runTime = " << processes[i].getRunTime() <<endl;
     cout << endl;
     }*/
+
   runContiguous(processes, SIZE);
-  //runNonContiguous(processes, SIZE);
+  runNonContiguous(processes, SIZE);
   
   return EXIT_SUCCESS;
 }

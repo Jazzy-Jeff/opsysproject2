@@ -16,3 +16,6 @@ int runContiguous(std::vector<Process> processes, int memSize);
 
 //Non-Contiguous memory function definitions
 int runNonContiguous(std::vector<Process> processes, int size);
+//Function definitions for both
+void mergePartitions(list<Partition> &memory, list<Partition>::iterator loc);
+
