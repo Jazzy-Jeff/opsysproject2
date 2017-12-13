@@ -45,7 +45,83 @@ void mergePartitions(list<Partition> &memory, list<Partition>::iterator loc) {
 }
 
 void nextFit(vector<Process> processes, int memSize) {
-  
+	list<Partition> memory;
+	memory.push_back(Partition(NULL, memSize));
+	int time = 0;
+	cout << "time " << time << "ms: Simulator started (Contiguous -- Next-Fit)" << endl;
+	int freeMem = memSize;
+	int defragTime = 0;
+	unsigned int finished = 0;
+	list<Partition>::iterator itr = memory.begin();
+	//while there are processes left to be processed
+	while (finished < processes.size()) { // remove processes from vector or keep variable count of finished processes
+		for (unsigned int i = 0; i < processes.size(); i++) {
+			if (processes[i].getArrivalTime() + defragTime == time) {
+				cout << "time " << time << "ms: Process " << processes[i].getId() << " arrived (requires " << processes[i].getSize() << " frames)" << endl;
+				//add process to memory if possible
+				//  print memory if added
+				//else if defragmentation() possible do it
+				//else skip process
+				bool partitionAdded = false;
+				if (freeMem >= processes[i].getSize()) {
+					//find nextFit Location
+					while (itr != memory.end())
+					{
+						if ((*itr).getSize() >= processes[i].getSize() && (*itr).isEmpty()) {
+							addPartition(memory, itr, processes[i]);
+							cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
+							printMemory(memory);
+							freeMem -= processes[i].getSize();
+							partitionAdded = true;
+							break;
+						}
+						++itr;
+					}
+					if (!partitionAdded) {
+						string movedProcesses = "";
+						cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- starting defragmentation" << endl;
+						int framesMoved = defragmentation(memory, freeMem, movedProcesses);
+						defragTime += framesMoved*T_MEMMOVE;
+						time += defragTime;
+						cout << "time " << time << "ms: Defragmentation complete (moved " << framesMoved << " frames:" << movedProcesses << ")" << endl;
+						cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
+						addPartition(memory, --memory.end(), processes[i]);
+						printMemory(memory);
+					}
+				}
+				else {
+					//skip process
+					if (processes[i].processComplete()) {
+						finished++;
+					}
+					cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- skipped!" << endl;
+					printMemory(memory);
+					continue;
+				}
+			}
+		}
+
+		//loop over memory/partitions looking for processes that expire at this time
+		//  if process expires
+		//    set partition that process uses as free (update freeMem variable, etc.)
+		//    remove process from processes list or add to count of finished processes
+		for (list<Partition>::iterator itr = memory.begin(); itr != memory.end(); itr++) {
+			if ((*itr).getExpirationTime() + defragTime == time) {
+				if ((*(*itr).getProcess()).processComplete()) {
+					finished++;
+				}
+				cout << "time " << time << "ms: Process " << (*itr).getId() << " removed:" << endl;
+				(*itr).emptyPartition();
+				freeMem += (*itr).getSize();
+				mergePartitions(memory, itr);
+				//if(finished < processes.size()) {
+				printMemory(memory);
+				//}
+			}
+		}
+		time++;
+	}
+	cout << "time " << time - 1 << "ms: Simulator ended (Contiguous -- Next-Fit)\n" << endl;
 }
 
 void firstFit(vector<Process> processes, int memSize) {
