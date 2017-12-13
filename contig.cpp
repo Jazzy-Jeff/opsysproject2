@@ -80,12 +80,13 @@ void firstFit(vector<Process> processes, int memSize) {
 	  if(!partitionAdded) {
 	    string movedProcesses = "";
 	    cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- starting defragmentation" << endl;
-	    int framesMoved = memSize - defragmentation(memory, freeMem, movedProcesses);
+	    int framesMoved = defragmentation(memory, freeMem, movedProcesses);
 	    defragTime += framesMoved*T_MEMMOVE;
 	    time += defragTime;
 	    cout << "time " << time << "ms: Defragmentation complete (moved " << framesMoved << " frames:" << movedProcesses << ")" << endl;
-	    cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
+	    printMemory(memory);
 	    addPartition(memory, --memory.end(), processes[i]);
+	    cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
 	    printMemory(memory);
 	  }
 	}
@@ -95,6 +96,7 @@ void firstFit(vector<Process> processes, int memSize) {
 	    finished++;
 	  }
 	  cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- skipped!" << endl;
+	  printMemory(memory);
 	  continue;
 	}
       }
@@ -120,7 +122,7 @@ void firstFit(vector<Process> processes, int memSize) {
     }
     time++;
   }
-  cout << "time " << time-1 << "ms: Simulator ended (Contiguous -- First-Fit)" << endl;
+  cout << "time " << time-1 << "ms: Simulator ended (Contiguous -- First-Fit)\n" << endl;
 }
 
 bool addToBestLocation(list<Partition> &memory, Process &process, int &freeMem, int time) {
@@ -166,7 +168,7 @@ void bestFit(vector<Process> processes, int memSize) {
 	  if(!partitionAdded) {
 	    string movedProcesses = "";
 	    cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- starting defragmentation" << endl;
-	    int framesMoved = memSize - defragmentation(memory, freeMem, movedProcesses);
+	    int framesMoved = defragmentation(memory, freeMem, movedProcesses);
 	    defragTime += framesMoved*T_MEMMOVE;
 	    time += defragTime;
 	    cout << "time " << time << "ms: Defragmentation complete (moved " << framesMoved << " frames:" << movedProcesses << ")" << endl;
@@ -181,6 +183,7 @@ void bestFit(vector<Process> processes, int memSize) {
 	    finished++;
 	  }
 	  cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- skipped!" << endl;
+	  printMemory(memory);
 	  continue;
 	}
       }
@@ -206,30 +209,30 @@ void bestFit(vector<Process> processes, int memSize) {
     }
     time++;
   }
-  cout << "time " << time-1 << "ms: Simulator ended (Contiguous -- Best-Fit)" << endl;
+  cout << "time " << time-1 << "ms: Simulator ended (Contiguous -- Best-Fit)\n" << endl;
 }
 
 //defragment memory, returns number of frames moved
-int defragmentation(list<Partition> &memory, int &freeMem, string &movedProcesses) {
-  int open = 0;
+int defragmentation(list<Partition> &memory, const int &freeMem, string &movedProcesses) {
+  int moved = 0;
   list<Partition>::iterator itr = memory.begin();
   bool processMoved = false;
   while(itr != memory.end()) {
     if((*itr).isEmpty()) {
       processMoved = true;
-      open += (*itr).getSize();
       itr = memory.erase(itr);
     }
     else {
       if(processMoved) {
-	movedProcesses += " "+ (*itr).getId();
+	moved += (*itr).getSize();
+	movedProcesses += " "+ (*itr).getId() + ",";
       }
       ++itr;
     }
   }
-  freeMem = open;
+  movedProcesses.pop_back();
   memory.push_back(Partition(NULL, freeMem));
-  return open;
+  return moved;
 }
 
 int runContiguous(vector<Process> processes, int memSize) {
