@@ -1,3 +1,7 @@
+//Isaac Dugas dugasi
+//Jeff Willoughby willoj
+//Gabe Langlois langlg
+
 #include <vector>
 #include <list>
 #include <iterator>
@@ -119,8 +123,90 @@ void firstFit(vector<Process> processes, int memSize) {
   cout << "time " << time-1 << "ms: Simulator ended (Contiguous -- First-Fit)" << endl;
 }
 
-void bestFit(vector<Process> processes, int memSize) {
+bool addToBestLocation(list<Partition> &memory, Process &process, int &freeMem, int time) {
+  int minDiff = freeMem;
+  list<Partition>::iterator bestLoc = memory.end();
+  for(list<Partition>::iterator itr = memory.begin(); itr != memory.end(); itr++) {
+    if((*itr).getSize() - process.getSize() < minDiff && (*itr).getSize() - process.getSize() >= 0 && (*itr).isEmpty()) {
+      minDiff = (*itr).getSize() - process.getSize();
+      bestLoc = itr;
+    }
+  }
+  if(bestLoc == memory.end()) {
+    return false;
+  }
+  addPartition(memory, bestLoc, process);
+  cout << "time " << time << "ms: Placed process " << process.getId() << ":" << endl;
+  printMemory(memory);
+  freeMem -= process.getSize();
+  return true; 
+}
 
+void bestFit(vector<Process> processes, int memSize) {
+  list<Partition> memory;
+  memory.push_back(Partition(NULL, memSize));
+  int time = 0;
+  cout << "time " << time << "ms: Simulator started (Contiguous -- Best-Fit)" << endl;
+  int freeMem = memSize;
+  int defragTime = 0;
+  unsigned int finished = 0;
+  //while there are processes left to be processed
+  while(finished < processes.size()) { // remove processes from vector or keep variable count of finished processes
+    for(unsigned int i = 0; i < processes.size(); i++) {
+      if(processes[i].getArrivalTime() + defragTime == time) {
+	cout << "time " << time << "ms: Process " << processes[i].getId() << " arrived (requires " << processes[i].getSize() << " frames)" << endl;
+	//add process to memory if possible
+	//  print memory if added
+	//else if defragmentation() possible do it
+	//else skip process
+	bool partitionAdded = false;
+	if(freeMem >= processes[i].getSize()) {
+	  //findbestlocation
+	  partitionAdded = addToBestLocation(memory, processes[i], freeMem, time);
+	  if(!partitionAdded) {
+	    string movedProcesses = "";
+	    cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- starting defragmentation" << endl;
+	    int framesMoved = memSize - defragmentation(memory, freeMem, movedProcesses);
+	    defragTime += framesMoved*T_MEMMOVE;
+	    time += defragTime;
+	    cout << "time " << time << "ms: Defragmentation complete (moved " << framesMoved << " frames:" << movedProcesses << ")" << endl;
+	    cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
+	    addPartition(memory, --memory.end(), processes[i]);
+	    printMemory(memory);
+	  }
+	}
+	else {
+	  //skip process
+	  if(processes[i].processComplete()) {
+	    finished++;
+	  }
+	  cout << "time " << time << "ms: Cannot place process " << processes[i].getId() << " -- skipped!" << endl;
+	  continue;
+	}
+      }
+    }
+
+    //loop over memory/partitions looking for processes that expire at this time
+    //  if process expires
+    //    set partition that process uses as free (update freeMem variable, etc.)
+    //    remove process from processes list or add to count of finished processes
+    for(list<Partition>::iterator itr = memory.begin(); itr != memory.end(); itr++) {
+      if((*itr).getExpirationTime() + defragTime == time) {
+	if((*(*itr).getProcess()).processComplete()) {
+	  finished++;
+	}
+	cout << "time " << time << "ms: Process " << (*itr).getId() << " removed:" << endl;
+	(*itr).emptyPartition();
+	freeMem += (*itr).getSize();
+	mergePartitions(memory, itr);
+	//if(finished < processes.size()) {
+	  printMemory(memory);
+	  //}
+      }
+    }
+    time++;
+  }
+  cout << "time " << time-1 << "ms: Simulator ended (Contiguous -- Best-Fit)" << endl;
 }
 
 //defragment memory, returns number of frames moved
@@ -149,8 +235,8 @@ int defragmentation(list<Partition> &memory, int &freeMem, string &movedProcesse
 int runContiguous(vector<Process> processes, int memSize) {
 
   //nextFit(processes, memSize);
-  firstFit(processes, memSize);
-  //bestFit(processes, memSize);
+  //firstFit(processes, memSize);
+  bestFit(processes, memSize);
 
   return EXIT_SUCCESS;
 }
