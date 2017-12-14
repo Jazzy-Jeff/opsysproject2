@@ -83,17 +83,23 @@ void nextFit(vector<Process> processes, int memSize) {
 					if ((*itr).isEmpty())
 					{
 						int size_check = 0;
-						for (list<Partition>::iterator itr2 = itr; itr2 != memory.end(); itr2++) {
-							if ((*itr).isEmpty()) {
-								++size_check;
-							}
-							else if (size_check >= processes[i].getSize()) {
+						list<Partition>::iterator itr2 = itr;
+						for (; itr2 != memory.end(); itr2++) {
+							if (size_check >= processes[i].getSize()) {
 								found_empty = 1;
 								break;
+							}
+							else if ((*itr).isEmpty()) {
+								size_check += (*itr).getSize();
+								cout << size_check << " out of " << processes[i].getSize() << endl;
 							}
 							else {
 								size_check = 0;
 							}
+						}
+						if (found_empty == 1)
+						{
+							break;
 						}
 					}
 				}
@@ -131,6 +137,7 @@ void nextFit(vector<Process> processes, int memSize) {
 						cout << "time " << time << "ms: Defragmentation complete (moved " << framesMoved << " frames:" << movedProcesses << ")" << endl;
 						cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
 						addPartition(memory, --memory.end(), processes[i]);
+						itr_last = itr;
 						printMemory(memory);
 					}
 				}
