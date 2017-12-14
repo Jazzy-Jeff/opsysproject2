@@ -52,9 +52,10 @@ void nextFit(vector<Process> processes, int memSize) {
 	int freeMem = memSize;
 	int defragTime = 0;
 	unsigned int finished = 0;
-	list<Partition>::iterator itr = memory.begin();
+	list<Partition>::iterator itr_last = memory.begin();
 	//while there are processes left to be processed
 	while (finished < processes.size()) {
+		list<Partition>::iterator itr = memory.begin();
 		// remove processes from vector or keep variable count of finished processes
 		//loop over memory/partitions looking for processes that expire at this time
 		//  if process expires
@@ -69,28 +70,37 @@ void nextFit(vector<Process> processes, int memSize) {
 				(*itr).emptyPartition();
 				freeMem += (*itr).getSize();
 				mergePartitions(memory, itr);
+				itr_last = itr;
 				printMemory(memory);
 			}
 		}
-		itr = memory.begin();
-
-		int stop = 0;
-		for (; itr != memory.end(); itr++) {
-			if (!(*itr).isEmpty())
-			{
-				stop = 1;
-			}
-			if (stop == 1 && (*itr).isEmpty())
-			{
-				break;
-			}
-		}
-		if (stop == 0)
-		{
-			itr = memory.begin();
-		}
+		
 		for (unsigned int i = 0; i < processes.size(); i++) {
 			if (processes[i].getArrivalTime() + defragTime == time) {
+				itr = itr_last;
+				int found_empty = 0;
+				for (; itr != memory.end(); itr++) {
+					if ((*itr).isEmpty())
+					{
+						int size_check = 0;
+						for (list<Partition>::iterator itr2 = itr; itr2 != memory.end(); itr2++) {
+							if ((*itr).isEmpty()) {
+								++size_check;
+							}
+							else if (size_check >= processes[i].getSize()) {
+								found_empty = 1;
+								break;
+							}
+							else {
+								size_check = 0;
+							}
+						}
+					}
+				}
+				if (found_empty == 0)
+				{
+					itr = memory.begin();
+				}
 				cout << "time " << time << "ms: Process " << processes[i].getId() << " arrived (requires " << processes[i].getSize() << " frames)" << endl;
 				//add process to memory if possible
 				//  print memory if added
@@ -103,6 +113,7 @@ void nextFit(vector<Process> processes, int memSize) {
 					{
 						if ((*itr).getSize() >= processes[i].getSize() && (*itr).isEmpty()) {
 							addPartition(memory, itr, processes[i]);
+							itr_last = itr;
 							cout << "time " << time << "ms: Placed process " << processes[i].getId() << ":" << endl;
 							printMemory(memory);
 							freeMem -= processes[i].getSize();
