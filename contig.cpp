@@ -54,7 +54,41 @@ void nextFit(vector<Process> processes, int memSize) {
 	unsigned int finished = 0;
 	list<Partition>::iterator itr = memory.begin();
 	//while there are processes left to be processed
-	while (finished < processes.size()) { // remove processes from vector or keep variable count of finished processes
+	while (finished < processes.size()) {
+		// remove processes from vector or keep variable count of finished processes
+		//loop over memory/partitions looking for processes that expire at this time
+		//  if process expires
+		//    set partition that process uses as free (update freeMem variable, etc.)
+		//    remove process from processes list or add to count of finished processes
+		for (; itr != memory.end(); itr++) {
+			if ((*itr).getExpirationTime() + defragTime == time) {
+				if ((*(*itr).getProcess()).processComplete()) {
+					finished++;
+				}
+				cout << "time " << time << "ms: Process " << (*itr).getId() << " removed:" << endl;
+				(*itr).emptyPartition();
+				freeMem += (*itr).getSize();
+				mergePartitions(memory, itr);
+				printMemory(memory);
+			}
+		}
+		itr = memory.begin();
+
+		int stop = 0;
+		for (; itr != memory.end(); itr++) {
+			if (!(*itr).isEmpty())
+			{
+				stop = 1;
+			}
+			if (stop == 1 && (*itr).isEmpty())
+			{
+				break;
+			}
+		}
+		if (stop == 0)
+		{
+			itr = memory.begin();
+		}
 		for (unsigned int i = 0; i < processes.size(); i++) {
 			if (processes[i].getArrivalTime() + defragTime == time) {
 				cout << "time " << time << "ms: Process " << processes[i].getId() << " arrived (requires " << processes[i].getSize() << " frames)" << endl;
@@ -101,24 +135,6 @@ void nextFit(vector<Process> processes, int memSize) {
 			}
 		}
 
-		//loop over memory/partitions looking for processes that expire at this time
-		//  if process expires
-		//    set partition that process uses as free (update freeMem variable, etc.)
-		//    remove process from processes list or add to count of finished processes
-		for (list<Partition>::iterator itr = memory.begin(); itr != memory.end(); itr++) {
-			if ((*itr).getExpirationTime() + defragTime == time) {
-				if ((*(*itr).getProcess()).processComplete()) {
-					finished++;
-				}
-				cout << "time " << time << "ms: Process " << (*itr).getId() << " removed:" << endl;
-				(*itr).emptyPartition();
-				freeMem += (*itr).getSize();
-				mergePartitions(memory, itr);
-				//if(finished < processes.size()) {
-				printMemory(memory);
-				//}
-			}
-		}
 		time++;
 	}
 	cout << "time " << time - 1 << "ms: Simulator ended (Contiguous -- Next-Fit)\n" << endl;
